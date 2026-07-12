@@ -14,6 +14,7 @@ const defaultInviteeName = 'gia đình và bạn bè';
 const musicTitle = 'Vỗ tay';
 const musicStartTime = 51;
 const musicEndTime = 80;
+const musicSegmentSrc = `${applauseTrack}#t=${musicStartTime},${musicEndTime}`;
 
 function getInviteeName(searchParams) {
   const guest = searchParams.get('guest')?.trim().replace(/\s+/g, ' ');
@@ -172,6 +173,29 @@ export default function App() {
   const hasStartedMusicRef = useRef(false);
   const inviteeName = useMemo(() => getInviteeName(searchParams), [searchParams]);
 
+  const resetMusicToSegmentStart = useCallback(() => {
+    const music = musicRef.current;
+
+    if (!music) return false;
+
+    try {
+      music.currentTime = musicStartTime;
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const keepMusicInsideSegment = useCallback(() => {
+    const music = musicRef.current;
+
+    if (!music) return;
+
+    if (music.currentTime < musicStartTime || music.currentTime >= musicEndTime) {
+      resetMusicToSegmentStart();
+    }
+  }, [resetMusicToSegmentStart]);
+
   const playInvitationMusic = useCallback((shouldResetSegment = false) => {
     const music = musicRef.current;
 
@@ -179,12 +203,8 @@ export default function App() {
 
     const isOutsideSelectedSegment = music.currentTime < musicStartTime || music.currentTime >= musicEndTime;
 
-    if (shouldResetSegment || !hasStartedMusicRef.current || isOutsideSelectedSegment) {
-      try {
-        music.currentTime = musicStartTime;
-      } catch {
-        return;
-      }
+    if ((shouldResetSegment || !hasStartedMusicRef.current || isOutsideSelectedSegment) && !resetMusicToSegmentStart()) {
+      return;
     }
 
     music
@@ -196,7 +216,7 @@ export default function App() {
       .catch(() => {
         setIsMusicPlaying(false);
       });
-  }, []);
+  }, [resetMusicToSegmentStart]);
 
   useEffect(() => {
     playInvitationMusic();
@@ -212,13 +232,31 @@ export default function App() {
     };
   }, [playInvitationMusic]);
 
+  useEffect(() => {
+    if (!isMusicPlaying) return undefined;
+
+    const segmentGuard = window.setInterval(keepMusicInsideSegment, 200);
+
+    return () => window.clearInterval(segmentGuard);
+  }, [isMusicPlaying, keepMusicInsideSegment]);
+
+  const handleMusicMetadata = () => {
+    setIsMusicReady(true);
+    resetMusicToSegmentStart();
+  };
+
   const loopMusicSegment = () => {
     const music = musicRef.current;
 
-    if (!music || music.currentTime < musicEndTime) return;
+    if (!music) return;
 
-    music.currentTime = musicStartTime;
-    music.play().catch(() => {});
+    if (music.currentTime < musicEndTime && music.currentTime >= musicStartTime) return;
+
+    resetMusicToSegmentStart();
+
+    if (!music.paused) {
+      music.play().catch(() => {});
+    }
   };
 
   const toggleInvitationMusic = () => {
@@ -255,12 +293,14 @@ export default function App() {
       <audio
         ref={musicRef}
         preload="auto"
-        src={applauseTrack}
+        src={musicSegmentSrc}
         onCanPlay={() => playInvitationMusic()}
+        onLoadedMetadata={handleMusicMetadata}
         onLoadedData={() => setIsMusicReady(true)}
         onPlay={() => setIsMusicPlaying(true)}
         onPause={() => setIsMusicPlaying(false)}
         onTimeUpdate={loopMusicSegment}
+        onEnded={loopMusicSegment}
       />
     </main>
   );
