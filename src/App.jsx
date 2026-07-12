@@ -177,7 +177,9 @@ export default function App() {
 
     if (!music) return;
 
-    if (shouldResetSegment || !hasStartedMusicRef.current || music.currentTime >= musicEndTime) {
+    const isOutsideSelectedSegment = music.currentTime < musicStartTime || music.currentTime >= musicEndTime;
+
+    if (shouldResetSegment || !hasStartedMusicRef.current || isOutsideSelectedSegment) {
       try {
         music.currentTime = musicStartTime;
       } catch {
@@ -230,13 +232,13 @@ export default function App() {
       return;
     }
 
-    playInvitationMusic(!hasStartedMusicRef.current);
+    playInvitationMusic(true);
   };
 
   const openInvitation = () => {
     if (stage !== 'sealed') return;
 
-    playInvitationMusic();
+    playInvitationMusic(true);
     setStage('opening');
     window.setTimeout(() => setStage('opened'), 950);
   };
