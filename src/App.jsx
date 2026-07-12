@@ -11,6 +11,7 @@ const petals = Array.from({ length: 18 }, (_, index) => ({
 }));
 
 const defaultInviteeName = 'gia đình và bạn bè';
+const musicTitle = 'Vỗ tay';
 const musicStartTime = 51;
 const musicEndTime = 78;
 
@@ -112,7 +113,6 @@ function CoverStage({ invitee, onOpen, stage }) {
           <small>
             Kính mời: <b>{invitee}</b>
           </small>
-          <span>Please join us for a</span>
           <em>24 | 07 | 2026</em>
         </span>
         <span className="open-seal">
@@ -134,30 +134,66 @@ function InvitationContent() {
   );
 }
 
+function MusicWidget({ isPlaying, isReady, onToggle }) {
+  return (
+    <aside className="music-widget" aria-label="Điều khiển nhạc nền">
+      <div className="music-orb" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M9 18V5l10-2v13" />
+          <circle cx="7" cy="18" r="3" />
+          <circle cx="17" cy="16" r="3" />
+        </svg>
+      </div>
+      <div className="music-copy">
+        <span>{isPlaying ? 'Đang phát' : isReady ? 'Nhạc nền' : 'Đang tải'}</span>
+        <strong>{musicTitle}</strong>
+      </div>
+      <button className="music-toggle" type="button" onClick={onToggle} aria-label={isPlaying ? 'Tắt nhạc' : 'Bật nhạc'}>
+        {isPlaying ? (
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <path d="M8 5v14M16 5v14" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <path d="M8 5v14l11-7-11-7Z" />
+          </svg>
+        )}
+      </button>
+    </aside>
+  );
+}
+
 export default function App() {
   const [searchParams] = useSearchParams();
   const [stage, setStage] = useState('sealed');
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMusicReady, setIsMusicReady] = useState(false);
   const musicRef = useRef(null);
   const hasStartedMusicRef = useRef(false);
   const inviteeName = useMemo(() => getInviteeName(searchParams), [searchParams]);
 
-  const playInvitationMusic = useCallback(() => {
+  const playInvitationMusic = useCallback((shouldResetSegment = false) => {
     const music = musicRef.current;
 
-    if (!music || hasStartedMusicRef.current) return;
+    if (!music) return;
 
-    try {
-      music.currentTime = musicStartTime;
-    } catch {
-      return;
+    if (shouldResetSegment || !hasStartedMusicRef.current || music.currentTime >= musicEndTime) {
+      try {
+        music.currentTime = musicStartTime;
+      } catch {
+        return;
+      }
     }
 
     music
       .play()
       .then(() => {
         hasStartedMusicRef.current = true;
+        setIsMusicPlaying(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        setIsMusicPlaying(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -183,6 +219,20 @@ export default function App() {
     music.play().catch(() => {});
   };
 
+  const toggleInvitationMusic = () => {
+    const music = musicRef.current;
+
+    if (!music) return;
+
+    if (isMusicPlaying) {
+      music.pause();
+      setIsMusicPlaying(false);
+      return;
+    }
+
+    playInvitationMusic(!hasStartedMusicRef.current);
+  };
+
   const openInvitation = () => {
     if (stage !== 'sealed') return;
 
@@ -194,6 +244,7 @@ export default function App() {
   return (
     <main className={`page ${stage}`}>
       <PetalField />
+      <MusicWidget isPlaying={isMusicPlaying} isReady={isMusicReady} onToggle={toggleInvitationMusic} />
       {stage === 'opened' ? (
         <InvitationContent />
       ) : (
@@ -203,7 +254,10 @@ export default function App() {
         ref={musicRef}
         preload="auto"
         src={applauseTrack}
-        onCanPlay={playInvitationMusic}
+        onCanPlay={() => playInvitationMusic()}
+        onLoadedData={() => setIsMusicReady(true)}
+        onPlay={() => setIsMusicPlaying(true)}
+        onPause={() => setIsMusicPlaying(false)}
         onTimeUpdate={loopMusicSegment}
       />
     </main>
