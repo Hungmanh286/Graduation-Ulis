@@ -2,18 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import applauseTrack from '../VỖ TAY.mp3';
 
-const petals = Array.from({ length: 18 }, (_, index) => ({
+const petals = Array.from({ length: 42 }, (_, index) => ({
   id: index,
-  left: `${(index * 17 + 8) % 100}%`,
-  delay: `${(index % 9) * -1.7}s`,
-  duration: `${10 + (index % 6) * 1.4}s`,
-  size: `${8 + (index % 5) * 3}px`,
+  left: `${(index * 13 + 5) % 100}%`,
+  delay: `${(index % 14) * -1.1}s`,
+  duration: `${8 + (index % 7) * 1.15}s`,
+  size: `${7 + (index % 6) * 2.4}px`,
 }));
 
 const defaultInviteeName = 'gia đình và bạn bè';
 const musicTitle = 'Vỗ tay';
 const musicStartTime = 51;
-const musicEndTime = 78;
+const musicEndTime = 80;
 
 function getInviteeName(searchParams) {
   const guest = searchParams.get('guest')?.trim().replace(/\s+/g, ' ');
