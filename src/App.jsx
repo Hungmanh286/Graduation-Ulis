@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import applauseTrack from '../VỖ TAY.mp3';
 
 const petals = Array.from({ length: 18 }, (_, index) => ({
   id: index,
@@ -10,6 +11,8 @@ const petals = Array.from({ length: 18 }, (_, index) => ({
 }));
 
 const defaultInviteeName = 'gia đình và bạn bè';
+const musicStartTime = 51;
+const musicEndTime = 78;
 
 function getInviteeName(searchParams) {
   const guest = searchParams.get('guest')?.trim().replace(/\s+/g, ' ');
@@ -134,11 +137,31 @@ function InvitationContent() {
 export default function App() {
   const [searchParams] = useSearchParams();
   const [stage, setStage] = useState('sealed');
+  const musicRef = useRef(null);
   const inviteeName = useMemo(() => getInviteeName(searchParams), [searchParams]);
+
+  const playInvitationMusic = () => {
+    const music = musicRef.current;
+
+    if (!music) return;
+
+    music.currentTime = musicStartTime;
+    music.play().catch(() => {});
+  };
+
+  const loopMusicSegment = () => {
+    const music = musicRef.current;
+
+    if (!music || music.currentTime < musicEndTime) return;
+
+    music.currentTime = musicStartTime;
+    music.play().catch(() => {});
+  };
 
   const openInvitation = () => {
     if (stage !== 'sealed') return;
 
+    playInvitationMusic();
     setStage('opening');
     window.setTimeout(() => setStage('opened'), 950);
   };
@@ -151,6 +174,12 @@ export default function App() {
       ) : (
         <CoverStage invitee={inviteeName} onOpen={openInvitation} stage={stage} />
       )}
+      <audio
+        ref={musicRef}
+        preload="auto"
+        src={applauseTrack}
+        onTimeUpdate={loopMusicSegment}
+      />
     </main>
   );
 }
