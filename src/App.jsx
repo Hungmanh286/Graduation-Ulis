@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import applauseTrack from '../VỖ TAY.mp3';
 
@@ -138,16 +138,41 @@ export default function App() {
   const [searchParams] = useSearchParams();
   const [stage, setStage] = useState('sealed');
   const musicRef = useRef(null);
+  const hasStartedMusicRef = useRef(false);
   const inviteeName = useMemo(() => getInviteeName(searchParams), [searchParams]);
 
-  const playInvitationMusic = () => {
+  const playInvitationMusic = useCallback(() => {
     const music = musicRef.current;
 
-    if (!music) return;
+    if (!music || hasStartedMusicRef.current) return;
 
-    music.currentTime = musicStartTime;
-    music.play().catch(() => {});
-  };
+    try {
+      music.currentTime = musicStartTime;
+    } catch {
+      return;
+    }
+
+    music
+      .play()
+      .then(() => {
+        hasStartedMusicRef.current = true;
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    playInvitationMusic();
+
+    const startMusicOnInteraction = () => playInvitationMusic();
+
+    window.addEventListener('pointerdown', startMusicOnInteraction, { once: true });
+    window.addEventListener('keydown', startMusicOnInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', startMusicOnInteraction);
+      window.removeEventListener('keydown', startMusicOnInteraction);
+    };
+  }, [playInvitationMusic]);
 
   const loopMusicSegment = () => {
     const music = musicRef.current;
@@ -178,6 +203,7 @@ export default function App() {
         ref={musicRef}
         preload="auto"
         src={applauseTrack}
+        onCanPlay={playInvitationMusic}
         onTimeUpdate={loopMusicSegment}
       />
     </main>
