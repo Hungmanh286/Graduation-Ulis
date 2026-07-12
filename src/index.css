@@ -304,13 +304,13 @@ button:focus-visible {
 
 .envelope-label small {
   display: block;
-  margin: clamp(14px, 1.8vw, 22px) auto clamp(16px, 2vw, 24px);
+  margin: clamp(38px, 4.6vw, 58px) auto clamp(16px, 2vw, 24px);
   padding: 0;
   width: auto;
   border: 0;
   color: #8e4c5b;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1rem, 1.7vw, 1.55rem);
+  font-size: clamp(1.2rem, 2.1vw, 1.9rem);
   font-style: italic;
   font-weight: 600;
 }
@@ -351,7 +351,7 @@ button:focus-visible {
 
 .open-seal {
   position: absolute;
-  top: 74%;
+  top: 84%;
   left: 50%;
   z-index: 8;
   display: grid;
@@ -567,9 +567,9 @@ button:focus-visible {
   }
 
   .envelope-label small {
-    margin: 9px auto 0;
+    margin: clamp(22px, 7vw, 30px) auto 0;
     max-width: 100%;
-    font-size: clamp(0.68rem, 3.25vw, 0.86rem);
+    font-size: clamp(0.82rem, 4vw, 1rem);
     line-height: 1.18;
   }
 
@@ -598,7 +598,7 @@ button:focus-visible {
   }
 
   .open-seal {
-    top: 78%;
+    top: 86%;
     left: 50%;
     width: clamp(46px, 13vw, 56px);
   }
