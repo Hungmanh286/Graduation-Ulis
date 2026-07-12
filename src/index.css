@@ -268,6 +268,24 @@ button:focus-visible {
   letter-spacing: 0;
 }
 
+.graduation-emblem {
+  position: absolute;
+  top: 5.6%;
+  left: 50%;
+  z-index: 7;
+  display: block;
+  width: clamp(86px, 12.5vw, 142px);
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 18px rgba(72, 45, 45, 0.18));
+  pointer-events: none;
+}
+
+.graduation-emblem svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .envelope-label {
   position: absolute;
   top: 30%;
@@ -300,6 +318,7 @@ button:focus-visible {
 .envelope-label small b {
   font-style: italic;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .envelope-label span,
@@ -551,6 +570,11 @@ button:focus-visible {
     top: 7%;
     left: 6%;
     font-size: 0.82rem;
+  }
+
+  .graduation-emblem {
+    top: 5.2%;
+    width: 70px;
   }
 
   .letter-peek {
